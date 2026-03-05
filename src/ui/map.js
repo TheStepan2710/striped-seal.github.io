@@ -4,10 +4,6 @@ export function initMap(containerId) {
     attributionControl: true,
   }).setView([55.5, 149.2], 5);
 
-  L.control
-    .zoom({ position: 'bottomright' })
-    .addTo(map);
-
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 12,
     minZoom: 4,

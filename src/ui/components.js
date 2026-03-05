@@ -1,15 +1,15 @@
 import { speciesMeta, speciesOptions } from '../model/species.js';
 
 const WEEKDAYS = {
-  '2026-02-21': 'Сб',
-  '2026-02-22': 'Вс',
-  '2026-02-23': 'Пн',
-  '2026-02-24': 'Вт',
-  '2026-02-25': 'Ср',
+  '2026-02-21': 'сб',
+  '2026-02-22': 'вс',
+  '2026-02-23': 'пн',
+  '2026-02-24': 'вт',
+  '2026-02-25': 'ср',
 };
 
-function formatScaleLabel(dateKey) {
-  return `${WEEKDAYS[dateKey] || ''}, ${dateKey.slice(-2)}`;
+function labelFor(dateKey) {
+  return `${WEEKDAYS[dateKey]}, ${dateKey.slice(-2)}`;
 }
 
 export function createSpeciesDropdown(container, initialValue, onChange) {
@@ -33,11 +33,7 @@ export function createSpeciesDropdown(container, initialValue, onChange) {
       const item = document.createElement('button');
       item.className = `dropdown-item ${species === current ? 'active' : ''}`;
       const meta = speciesMeta[species];
-      item.innerHTML = `
-        <span>${meta.icon}</span>
-        <span>${meta.label}</span>
-        ${meta.pro ? '<span class="pro-badge">PRO</span>' : ''}
-      `;
+      item.innerHTML = `<span>${meta.icon}</span><span>${meta.label}</span>${meta.pro ? '<span class="pro-badge">PRO</span>' : ''}`;
       item.addEventListener('click', () => {
         current = species;
         isOpen = false;
@@ -52,7 +48,6 @@ export function createSpeciesDropdown(container, initialValue, onChange) {
     renderButton();
     renderMenu();
     menu.classList.toggle('hidden', !isOpen);
-    container.classList.toggle('open', isOpen);
   }
 
   button.addEventListener('click', (event) => {
@@ -81,111 +76,128 @@ export function createSpeciesDropdown(container, initialValue, onChange) {
 
 export function createTimelineScale(container, dateKeys, initialDate, onChange) {
   let current = initialDate;
+  let isSnapping = false;
 
+  const viewport = document.createElement('div');
+  viewport.className = 'timeline-viewport';
   const track = document.createElement('div');
   track.className = 'timeline-track';
-  container.appendChild(track);
+  const indicator = document.createElement('div');
+  indicator.className = 'timeline-indicator';
 
-  function render() {
+  viewport.append(track, indicator);
+  container.appendChild(viewport);
+
+  function renderItems() {
     track.innerHTML = '';
     dateKeys.forEach((dateKey) => {
-      const point = document.createElement('button');
-      point.className = `timeline-point ${dateKey === current ? 'selected' : ''}`;
-      point.innerHTML = `
-        <span class="timeline-dot" aria-hidden="true"></span>
-        <span class="timeline-label">${formatScaleLabel(dateKey)}</span>
-      `;
-      point.addEventListener('click', () => {
-        current = dateKey;
-        onChange(dateKey);
-        render();
-        point.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
-      });
-      track.appendChild(point);
+      const item = document.createElement('div');
+      item.className = `timeline-item ${dateKey === current ? 'selected' : ''}`;
+      item.dataset.dateKey = dateKey;
+      item.textContent = labelFor(dateKey);
+      track.appendChild(item);
     });
   }
 
-  render();
+  function getClosestDateToCenter() {
+    const centerX = viewport.scrollLeft + viewport.clientWidth / 2;
+    let best = dateKeys[0];
+    let minDistance = Infinity;
+
+    [...track.children].forEach((node) => {
+      const item = node;
+      const itemCenter = item.offsetLeft + item.offsetWidth / 2;
+      const distance = Math.abs(itemCenter - centerX);
+      if (distance < minDistance) {
+        minDistance = distance;
+        best = item.dataset.dateKey;
+      }
+    });
+
+    return best;
+  }
+
+  function scrollToDate(dateKey, smooth = true) {
+    const target = [...track.children].find((node) => node.dataset.dateKey === dateKey);
+    if (!target) return;
+    const targetLeft = target.offsetLeft - viewport.clientWidth / 2 + target.offsetWidth / 2;
+    viewport.scrollTo({ left: targetLeft, behavior: smooth ? 'smooth' : 'auto' });
+  }
+
+  let scrollTimer;
+  viewport.addEventListener('scroll', () => {
+    if (isSnapping) return;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      const nearest = getClosestDateToCenter();
+      if (nearest !== current) {
+        current = nearest;
+        onChange(nearest);
+      }
+      renderItems();
+      isSnapping = true;
+      scrollToDate(current, true);
+      setTimeout(() => {
+        isSnapping = false;
+      }, 180);
+    }, 80);
+  });
+
+  renderItems();
+  setTimeout(() => scrollToDate(initialDate, false), 0);
 
   return {
     setValue(nextDate) {
       current = nextDate;
-      render();
+      renderItems();
+      scrollToDate(nextDate, true);
     },
   };
 }
 
 export function createCalendarModal(container, dateKeys, defaultDate, onApply) {
-  let tempSelected = defaultDate;
+  const dateInput = document.getElementById('material-date-input');
+  const applyButton = document.getElementById('calendar-apply');
+  const clearButton = document.getElementById('calendar-clear');
+  const cancelButton = document.getElementById('calendar-cancel');
+  let current = defaultDate;
 
-  function open(currentDate) {
-    tempSelected = currentDate;
-    render();
+  function open(activeDate) {
+    current = activeDate;
+    dateInput.value = activeDate;
     container.classList.remove('hidden');
-    container.setAttribute('aria-hidden', 'false');
   }
 
   function close() {
     container.classList.add('hidden');
-    container.setAttribute('aria-hidden', 'true');
   }
 
-  function render() {
-    const enabled = new Set(dateKeys.map((key) => Number(key.slice(-2))));
-    const tempDay = Number(tempSelected.slice(-2));
-
-    container.innerHTML = `
-      <div class="modal-backdrop"></div>
-      <div class="modal-sheet">
-        <div class="sheet-header">
-          <h3>Февраль 2026</h3>
-        </div>
-        <div class="calendar-grid" role="grid"></div>
-        <div class="sheet-actions">
-          <button data-action="clear">Очистить</button>
-          <button data-action="cancel">Отмена</button>
-          <button data-action="ok" class="primary-btn">ОК</button>
-        </div>
-      </div>
-    `;
-
-    const grid = container.querySelector('.calendar-grid');
-    const firstWeekdayOffset = 6;
-
-    for (let index = 0; index < firstWeekdayOffset; index += 1) {
-      const empty = document.createElement('div');
-      empty.className = 'day-cell empty';
-      grid.appendChild(empty);
-    }
-
-    for (let day = 1; day <= 28; day += 1) {
-      const button = document.createElement('button');
-      const selectable = enabled.has(day);
-      button.className = `day-cell ${selectable ? '' : 'disabled'} ${tempDay === day ? 'selected' : ''}`;
-      button.textContent = day;
-      button.disabled = !selectable;
-      if (selectable) {
-        button.addEventListener('click', () => {
-          tempSelected = `2026-02-${String(day).padStart(2, '0')}`;
-          render();
-        });
-      }
-      grid.appendChild(button);
-    }
-
-    container.querySelector('.modal-backdrop').addEventListener('click', close);
-    container.querySelector('[data-action="cancel"]').addEventListener('click', close);
-    container.querySelector('[data-action="ok"]').addEventListener('click', () => {
-      onApply(tempSelected);
-      close();
-    });
-    container.querySelector('[data-action="clear"]').addEventListener('click', () => {
+  applyButton.addEventListener('click', () => {
+    const value = dateInput.value || defaultDate;
+    if (dateKeys.includes(value)) {
+      onApply(value);
+    } else {
       onApply(defaultDate);
-      close();
-    });
-  }
+    }
+    close();
+  });
 
-  render();
+  clearButton.addEventListener('click', () => {
+    onApply(defaultDate);
+    close();
+  });
+
+  cancelButton.addEventListener('click', close);
+
+  container.querySelector('.modal-backdrop').addEventListener('click', close);
+
+  dateInput.addEventListener('change', () => {
+    const min = dateKeys[0];
+    const max = dateKeys[dateKeys.length - 1];
+    if (dateInput.value < min || dateInput.value > max) {
+      dateInput.value = current;
+    }
+  });
 
   return { open, close };
 }
@@ -231,26 +243,14 @@ export function createFactsCard(container) {
     let left = point.x + gap;
     let top = point.y - height - gap;
 
-    if (left + width > mapRect.width - 12) {
-      left = point.x - width - gap;
-    }
-    if (left < 12) {
-      left = 12;
-    }
-    if (top < 12) {
-      top = point.y + gap;
-    }
+    if (left + width > mapRect.width - 12) left = point.x - width - gap;
+    if (left < 12) left = 12;
+    if (top < 12) top = point.y + gap;
 
     container.style.left = `${left}px`;
     container.style.top = `${top}px`;
     container.classList.remove('hidden');
   }
 
-  return {
-    show,
-    hide,
-    get activeObservation() {
-      return activeObservation;
-    },
-  };
+  return { show, hide };
 }

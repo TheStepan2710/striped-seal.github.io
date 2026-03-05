@@ -11,6 +11,7 @@
       crossorigin=""
     />
     <link rel="stylesheet" href="styles/main.css" />
+    <script type="module" src="https://unpkg.com/@material/web@2.4.0/all.js"></script>
   </head>
   <body>
     <div id="app">
@@ -22,14 +23,19 @@
         <div id="species-dropdown" class="species-dropdown"></div>
       </header>
 
+      <div class="map-zoom-controls" aria-label="Управление масштабом">
+        <button id="zoom-in-btn" class="zoom-btn" aria-label="Приблизить">＋</button>
+        <button id="zoom-out-btn" class="zoom-btn" aria-label="Отдалить">－</button>
+      </div>
+
       <section class="bottom-panel" aria-label="Управление слоями и датой">
         <div class="legend-card">
-          <span>Низкий</span>
+          <span>низкая</span>
           <div class="legend-gradient" aria-hidden="true"></div>
-          <span>Высокий</span>
+          <span>высокая</span>
         </div>
         <div class="timeline-row">
-          <button id="today-btn" class="timeline-side-btn" aria-label="Вернуться к базовой дате">Сегодня</button>
+          <button id="today-btn" class="timeline-side-btn" aria-label="Вернуться к базовой дате">📍</button>
           <div id="timeline-scale" class="timeline-scale"></div>
           <button id="calendar-btn" class="timeline-side-btn" aria-label="Открыть календарь">📅</button>
         </div>
@@ -37,7 +43,18 @@
 
       <div id="facts-card" class="facts-card hidden" role="dialog" aria-live="polite"></div>
 
-      <div id="calendar-modal" class="modal hidden" aria-hidden="true"></div>
+      <div id="calendar-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-backdrop"></div>
+        <div class="modal-sheet material-sheet">
+          <h3>Календарь (Material Design)</h3>
+          <md-outlined-text-field id="material-date-input" type="date" label="Дата" value="2026-02-23" min="2026-02-21" max="2026-02-25"></md-outlined-text-field>
+          <div class="sheet-actions">
+            <md-text-button id="calendar-clear">Очистить</md-text-button>
+            <md-text-button id="calendar-cancel">Отмена</md-text-button>
+            <md-filled-button id="calendar-apply">ОК</md-filled-button>
+          </div>
+        </div>
+      </div>
 
       <div id="desktop-overlay" class="desktop-overlay hidden" role="dialog" aria-modal="false">
         <div class="desktop-overlay-card">

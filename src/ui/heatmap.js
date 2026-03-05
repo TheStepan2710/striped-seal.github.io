@@ -1,56 +1,29 @@
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
+function getBandColor(level) {
+  if (level >= 0.72) return 'rgba(204, 44, 44, 0.72)';
+  if (level >= 0.46) return 'rgba(217, 131, 50, 0.68)';
+  return 'rgba(214, 184, 47, 0.64)';
 }
 
-function getRampColor(t, alpha = 1) {
-  const normalized = clamp(t, 0, 1);
-  if (normalized < 0.5) {
-    const mid = Math.round(255 - 110 * (normalized * 2));
-    return `rgba(255, ${mid}, 0, ${alpha})`;
-  }
-  const low = Math.round(145 - 145 * ((normalized - 0.5) * 2));
-  return `rgba(255, ${low}, 0, ${alpha})`;
-}
-
-function drawBlob(ctx, x, y, radiusX, radiusY, angle) {
-  const k = 0.65;
+function drawFlowArrow(ctx, x, y, angle, scale) {
+  const len = 24 * scale;
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
-  ctx.beginPath();
-  ctx.moveTo(0, -radiusY);
-  ctx.bezierCurveTo(radiusX * k, -radiusY, radiusX, -radiusY * k, radiusX, 0);
-  ctx.bezierCurveTo(radiusX, radiusY * k, radiusX * 0.45, radiusY, 0, radiusY * 0.9);
-  ctx.bezierCurveTo(-radiusX * 0.45, radiusY, -radiusX, radiusY * k, -radiusX, 0);
-  ctx.bezierCurveTo(-radiusX, -radiusY * k, -radiusX * k, -radiusY, 0, -radiusY);
-  ctx.closePath();
-  ctx.restore();
-}
-
-function drawFlowArrows(ctx, x, y, radiusX, radiusY, angle) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
-  ctx.strokeStyle = 'rgba(255,255,255,0.78)';
-  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.lineWidth = 2;
   ctx.lineCap = 'round';
 
-  const lines = [-radiusX * 0.3, 0, radiusX * 0.28];
-  lines.forEach((offset) => {
-    ctx.beginPath();
-    ctx.moveTo(offset - 3, -radiusY * 0.7);
-    ctx.bezierCurveTo(offset + 10, -radiusY * 0.2, offset + 4, radiusY * 0.25, offset + 14, radiusY * 0.62);
-    ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-len * 0.55, -len * 0.45);
+  ctx.bezierCurveTo(-len * 0.1, -len * 0.05, len * 0.05, len * 0.2, len * 0.48, len * 0.52);
+  ctx.stroke();
 
-    const tipX = offset + 14;
-    const tipY = radiusY * 0.62;
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(tipX - 8, tipY - 4);
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(tipX - 5, tipY - 10);
-    ctx.stroke();
-  });
+  ctx.beginPath();
+  ctx.moveTo(len * 0.48, len * 0.52);
+  ctx.lineTo(len * 0.3, len * 0.45);
+  ctx.moveTo(len * 0.48, len * 0.52);
+  ctx.lineTo(len * 0.4, len * 0.33);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -66,42 +39,41 @@ export function createHeatmapOverlay(canvas, map) {
   function draw(observations) {
     resize();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!observations.length) return;
 
-    if (!observations.length) {
-      return;
+    const projected = observations.map((item) => ({
+      ...item,
+      point: map.latLngToContainerPoint([item.lat, item.lon]),
+    }));
+
+    const maxCount = Math.max(...projected.map((item) => item.count));
+    const step = 8;
+    const sigmaBase = 36;
+
+    for (let y = 0; y < canvas.height; y += step) {
+      for (let x = 0; x < canvas.width; x += step) {
+        let value = 0;
+        projected.forEach((item) => {
+          const norm = item.count / maxCount;
+          const sigma = sigmaBase + norm * 34;
+          const dx = x - item.point.x;
+          const dy = y - item.point.y;
+          const dist2 = dx * dx + dy * dy;
+          value += norm * Math.exp(-dist2 / (2 * sigma * sigma));
+        });
+
+        if (value < 0.1) continue;
+        const clamped = Math.min(1, value);
+        ctx.fillStyle = getBandColor(clamped);
+        ctx.fillRect(x, y, step, step);
+      }
     }
 
-    const maxCount = Math.max(...observations.map((item) => item.count));
-
-    observations.forEach((observation) => {
-      const point = map.latLngToContainerPoint([observation.lat, observation.lon]);
-      const intensity = Math.max(0.15, observation.count / maxCount);
-      const radiusX = 36 + intensity * 62;
-      const radiusY = 58 + intensity * 98;
-      const direction = ((observation.lon + observation.lat) % 20 - 10) * (Math.PI / 180);
-
-      const gradient = ctx.createRadialGradient(
-        point.x,
-        point.y,
-        8,
-        point.x,
-        point.y,
-        Math.max(radiusX, radiusY),
-      );
-      gradient.addColorStop(0, getRampColor(intensity, 0.58));
-      gradient.addColorStop(0.45, getRampColor(Math.max(0.2, intensity * 0.75), 0.5));
-      gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
-
-      ctx.fillStyle = gradient;
-      drawBlob(ctx, point.x, point.y, radiusX, radiusY, direction);
-      ctx.fill();
-
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = getRampColor(Math.min(1, intensity + 0.2), 0.75);
-      drawBlob(ctx, point.x, point.y, radiusX, radiusY, direction);
-      ctx.stroke();
-
-      drawFlowArrows(ctx, point.x, point.y, radiusX, radiusY, direction);
+    projected.forEach((item) => {
+      const intensity = Math.max(0.4, item.count / maxCount);
+      const angle = ((item.lat * 1.7 + item.lon) % 16 - 8) * (Math.PI / 180);
+      drawFlowArrow(ctx, item.point.x, item.point.y, angle, 0.8 + intensity * 0.5);
+      drawFlowArrow(ctx, item.point.x - 18, item.point.y + 10, angle, 0.62 + intensity * 0.35);
     });
   }
 

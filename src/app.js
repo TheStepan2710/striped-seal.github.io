@@ -10,44 +10,31 @@ const defaultState = {
   dateKey: '2026-02-23',
 };
 
-const state = {
-  ...defaultState,
-};
+const state = { ...defaultState };
 
 const map = initMap('map');
 const heatmapCanvas = document.getElementById('heatmap-canvas');
 const heatmap = createHeatmapOverlay(heatmapCanvas, map);
 const factsCard = createFactsCard(document.getElementById('facts-card'));
 
-const dropdown = createSpeciesDropdown(
-  document.getElementById('species-dropdown'),
-  state.species,
-  (nextSpecies) => {
-    state.species = nextSpecies;
-    refresh();
-  },
-);
+document.getElementById('zoom-in-btn').addEventListener('click', () => map.zoomIn());
+document.getElementById('zoom-out-btn').addEventListener('click', () => map.zoomOut());
 
-const timeline = createTimelineScale(
-  document.getElementById('timeline-scale'),
-  availableDateKeys,
-  state.dateKey,
-  (nextDate) => {
-    state.dateKey = nextDate;
-    refresh();
-  },
-);
+const dropdown = createSpeciesDropdown(document.getElementById('species-dropdown'), state.species, (nextSpecies) => {
+  state.species = nextSpecies;
+  refresh();
+});
 
-const calendarModal = createCalendarModal(
-  document.getElementById('calendar-modal'),
-  availableDateKeys,
-  defaultState.dateKey,
-  (nextDate) => {
-    state.dateKey = nextDate;
-    timeline.setValue(nextDate);
-    refresh();
-  },
-);
+const timeline = createTimelineScale(document.getElementById('timeline-scale'), availableDateKeys, state.dateKey, (nextDate) => {
+  state.dateKey = nextDate;
+  refresh();
+});
+
+const calendarModal = createCalendarModal(document.getElementById('calendar-modal'), availableDateKeys, defaultState.dateKey, (nextDate) => {
+  state.dateKey = nextDate;
+  timeline.setValue(nextDate);
+  refresh();
+});
 
 document.getElementById('calendar-btn').addEventListener('click', () => {
   calendarModal.open(state.dateKey);
@@ -66,9 +53,7 @@ const markerLayer = createMarkerLayer(map, (observation) => {
 
 function getFilteredObservations() {
   return demoObservations.filter(
-    (observation) =>
-      observation.species === state.species &&
-      observationDateKey(observation) === state.dateKey,
+    (observation) => observation.species === state.species && observationDateKey(observation) === state.dateKey,
   );
 }
 
@@ -93,13 +78,8 @@ window.addEventListener('resize', () => {
 
 document.getElementById('app').addEventListener('click', (event) => {
   const target = event.target;
-  if (!(target instanceof HTMLElement)) {
-    return;
-  }
-
-  if (!target.closest('.leaflet-interactive') && !target.closest('#facts-card')) {
-    factsCard.hide();
-  }
+  if (!(target instanceof HTMLElement)) return;
+  if (!target.closest('.leaflet-interactive') && !target.closest('#facts-card')) factsCard.hide();
 });
 
 const desktopOverlay = document.getElementById('desktop-overlay');
