@@ -1,0 +1,287 @@
+:root {
+  --panel-bg: rgba(255, 255, 255, 0.94);
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #9ec7d6;
+}
+
+#map,
+#heatmap-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+#heatmap-canvas {
+  pointer-events: none;
+  z-index: 401;
+}
+
+.top-controls {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 600;
+}
+
+.control-btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.species-dropdown {
+  position: relative;
+}
+
+.species-trigger .species-name {
+  max-width: 124px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-menu {
+  margin-top: 8px;
+  width: 220px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.dropdown-item {
+  width: 100%;
+  border: 0;
+  background: #fff;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.dropdown-item.active {
+  background: #eef7ff;
+}
+
+.pro-badge {
+  margin-left: auto;
+  font-size: 10px;
+  background: #2f7dff;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.bottom-panel {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(50px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 10px;
+  z-index: 550;
+}
+
+.legend-card {
+  background: var(--panel-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.legend-gradient {
+  height: 10px;
+  border-radius: 999px;
+  flex: 1;
+  background: linear-gradient(90deg, #ffe900, #ff9100, #ff2f00);
+}
+
+.timeline-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.chip {
+  min-width: 64px;
+  border-radius: 14px;
+  border: 0;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+  padding: 8px 10px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+}
+
+.chip.selected {
+  background: #0f5ce3;
+  color: white;
+}
+
+.calendar-btn {
+  position: absolute;
+  right: 16px;
+  bottom: calc(152px + env(safe-area-inset-bottom));
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  z-index: 560;
+}
+
+.facts-card {
+  position: absolute;
+  width: 220px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  z-index: 650;
+  font-size: 14px;
+}
+
+.facts-card p {
+  margin: 4px 0;
+}
+
+.modal {
+  position: absolute;
+  inset: 0;
+  z-index: 700;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.modal-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+}
+
+.sheet-header h3 {
+  margin: 0 0 12px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day-cell {
+  border: 1px solid #dde5ee;
+  border-radius: 10px;
+  min-height: 38px;
+  background: #fff;
+}
+
+.day-cell.selected {
+  background: #0f5ce3;
+  color: #fff;
+}
+
+.day-cell.disabled,
+.day-cell.empty {
+  border-color: transparent;
+  background: #f3f5f7;
+  color: #97a0aa;
+}
+
+.sheet-actions {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.sheet-actions button,
+.primary-btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px;
+  background: #eef2f7;
+}
+
+.primary-btn {
+  background: #0f5ce3;
+  color: #fff;
+}
+
+.desktop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.desktop-overlay-card {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (orientation: landscape) and (max-width: 899px) {
+  .bottom-panel {
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    max-width: 58%;
+  }
+
+  .calendar-btn {
+    bottom: calc(86px + env(safe-area-inset-bottom));
+  }
+}
