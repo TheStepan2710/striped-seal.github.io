@@ -8,6 +8,10 @@ const WEEKDAYS = {
   '2026-02-25': 'Ср',
 };
 
+function formatScaleLabel(dateKey) {
+  return `${WEEKDAYS[dateKey] || ''}, ${dateKey.slice(-2)}`;
+}
+
 export function createSpeciesDropdown(container, initialValue, onChange) {
   let isOpen = false;
   let current = initialValue;
@@ -48,6 +52,7 @@ export function createSpeciesDropdown(container, initialValue, onChange) {
     renderButton();
     renderMenu();
     menu.classList.toggle('hidden', !isOpen);
+    container.classList.toggle('open', isOpen);
   }
 
   button.addEventListener('click', (event) => {
@@ -74,30 +79,37 @@ export function createSpeciesDropdown(container, initialValue, onChange) {
   };
 }
 
-export function createTimelineChips(container, dateKeys, initialDate, onChange) {
+export function createTimelineScale(container, dateKeys, initialDate, onChange) {
   let current = initialDate;
 
+  const track = document.createElement('div');
+  track.className = 'timeline-track';
+  container.appendChild(track);
+
   function render() {
-    container.innerHTML = '';
+    track.innerHTML = '';
     dateKeys.forEach((dateKey) => {
-      const day = dateKey.slice(-2);
-      const chip = document.createElement('button');
-      chip.className = `chip ${dateKey === current ? 'selected' : ''}`;
-      chip.innerHTML = `<strong>${day}</strong><span>${WEEKDAYS[dateKey] || ''}</span>`;
-      chip.addEventListener('click', () => {
+      const point = document.createElement('button');
+      point.className = `timeline-point ${dateKey === current ? 'selected' : ''}`;
+      point.innerHTML = `
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <span class="timeline-label">${formatScaleLabel(dateKey)}</span>
+      `;
+      point.addEventListener('click', () => {
         current = dateKey;
         onChange(dateKey);
         render();
+        point.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
       });
-      container.appendChild(chip);
+      track.appendChild(point);
     });
   }
 
   render();
 
   return {
-    setValue(dateKey) {
-      current = dateKey;
+    setValue(nextDate) {
+      current = nextDate;
       render();
     },
   };
@@ -234,5 +246,11 @@ export function createFactsCard(container) {
     container.classList.remove('hidden');
   }
 
-  return { show, hide, get activeObservation() { return activeObservation; } };
+  return {
+    show,
+    hide,
+    get activeObservation() {
+      return activeObservation;
+    },
+  };
 }

@@ -1,7 +1,7 @@
 import { demoObservations, availableDateKeys } from './data/demoData.js';
 import { observationDateKey } from './model/observation.js';
 import { Species } from './model/species.js';
-import { createCalendarModal, createFactsCard, createSpeciesDropdown, createTimelineChips } from './ui/components.js';
+import { createCalendarModal, createFactsCard, createSpeciesDropdown, createTimelineScale } from './ui/components.js';
 import { createHeatmapOverlay } from './ui/heatmap.js';
 import { createMarkerLayer, initMap } from './ui/map.js';
 
@@ -28,8 +28,8 @@ const dropdown = createSpeciesDropdown(
   },
 );
 
-const chips = createTimelineChips(
-  document.getElementById('timeline-chips'),
+const timeline = createTimelineScale(
+  document.getElementById('timeline-scale'),
   availableDateKeys,
   state.dateKey,
   (nextDate) => {
@@ -44,13 +44,19 @@ const calendarModal = createCalendarModal(
   defaultState.dateKey,
   (nextDate) => {
     state.dateKey = nextDate;
-    chips.setValue(nextDate);
+    timeline.setValue(nextDate);
     refresh();
   },
 );
 
 document.getElementById('calendar-btn').addEventListener('click', () => {
   calendarModal.open(state.dateKey);
+});
+
+document.getElementById('today-btn').addEventListener('click', () => {
+  state.dateKey = defaultState.dateKey;
+  timeline.setValue(defaultState.dateKey);
+  refresh();
 });
 
 const markerLayer = createMarkerLayer(map, (observation) => {

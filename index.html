@@ -28,10 +28,12 @@
           <div class="legend-gradient" aria-hidden="true"></div>
           <span>Высокий</span>
         </div>
-        <div id="timeline-chips" class="timeline-chips"></div>
+        <div class="timeline-row">
+          <button id="today-btn" class="timeline-side-btn" aria-label="Вернуться к базовой дате">Сегодня</button>
+          <div id="timeline-scale" class="timeline-scale"></div>
+          <button id="calendar-btn" class="timeline-side-btn" aria-label="Открыть календарь">📅</button>
+        </div>
       </section>
-
-      <button id="calendar-btn" class="calendar-btn" aria-label="Открыть календарь">📅</button>
 
       <div id="facts-card" class="facts-card hidden" role="dialog" aria-live="polite"></div>
 

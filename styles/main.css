@@ -29,6 +29,10 @@ body {
   inset: 0;
 }
 
+.leaflet-tile {
+  filter: grayscale(1) contrast(1.04) brightness(1.04);
+}
+
 #heatmap-canvas {
   pointer-events: none;
   z-index: 401;
@@ -41,7 +45,7 @@ body {
   right: 12px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   z-index: 600;
 }
 
@@ -59,6 +63,8 @@ body {
 
 .species-dropdown {
   position: relative;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .species-trigger .species-name {
@@ -69,8 +75,10 @@ body {
 }
 
 .dropdown-menu {
-  margin-top: 8px;
-  width: 220px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 224px;
   background: #fff;
   border-radius: 12px;
   box-shadow: var(--shadow);
@@ -105,7 +113,7 @@ body {
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: calc(50px + env(safe-area-inset-bottom));
+  bottom: calc(16px + env(safe-area-inset-bottom));
   display: grid;
   gap: 10px;
   z-index: 550;
@@ -129,42 +137,72 @@ body {
   background: linear-gradient(90deg, #ffe900, #ff9100, #ff2f00);
 }
 
-.timeline-chips {
-  display: flex;
+.timeline-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
   gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
 }
 
-.chip {
-  min-width: 64px;
-  border-radius: 14px;
+.timeline-side-btn {
+  height: 38px;
   border: 0;
+  border-radius: 12px;
+  padding: 0 12px;
   background: var(--panel-bg);
   box-shadow: var(--shadow);
-  padding: 8px 10px;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 12px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
-.chip.selected {
-  background: #0f5ce3;
-  color: white;
+.timeline-scale {
+  min-width: 0;
 }
 
-.calendar-btn {
-  position: absolute;
-  right: 16px;
-  bottom: calc(152px + env(safe-area-inset-bottom));
-  width: 52px;
-  height: 52px;
+.timeline-track {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 3px 2px;
+  scrollbar-width: none;
+}
+
+.timeline-track::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-point {
   border: 0;
-  border-radius: 16px;
-  background: #fff;
+  border-radius: 12px;
+  background: var(--panel-bg);
   box-shadow: var(--shadow);
-  z-index: 560;
+  min-width: 72px;
+  padding: 6px 8px;
+  color: #1a1a1a;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #a8b0ba;
+}
+
+.timeline-point.selected {
+  background: #0f5ce3;
+  color: #fff;
+}
+
+.timeline-point.selected .timeline-dot {
+  background: #fff;
+}
+
+.timeline-label {
+  font-size: 11px;
 }
 
 .facts-card {
@@ -277,11 +315,6 @@ body {
 
 @media (orientation: landscape) and (max-width: 899px) {
   .bottom-panel {
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    max-width: 58%;
-  }
-
-  .calendar-btn {
-    bottom: calc(86px + env(safe-area-inset-bottom));
+    max-width: 76%;
   }
 }
