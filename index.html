@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sea of Okhotsk Prototype</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="map" aria-label="Карта Охотского моря"></div>
+      <canvas id="heatmap-canvas" aria-hidden="true"></canvas>
+
+      <header class="top-controls">
+        <button id="profile-btn" class="control-btn" aria-label="Профиль">👤</button>
+        <div id="species-dropdown" class="species-dropdown"></div>
+      </header>
+
+      <section class="bottom-panel" aria-label="Управление слоями и датой">
+        <div class="legend-card">
+          <span>Низкий</span>
+          <div class="legend-gradient" aria-hidden="true"></div>
+          <span>Высокий</span>
+        </div>
+        <div id="timeline-chips" class="timeline-chips"></div>
+      </section>
+
+      <button id="calendar-btn" class="calendar-btn" aria-label="Открыть календарь">📅</button>
+
+      <div id="facts-card" class="facts-card hidden" role="dialog" aria-live="polite"></div>
+
+      <div id="calendar-modal" class="modal hidden" aria-hidden="true"></div>
+
+      <div id="desktop-overlay" class="desktop-overlay hidden" role="dialog" aria-modal="false">
+        <div class="desktop-overlay-card">
+          <h2>Откройте на телефоне</h2>
+          <p>Этот прототип оптимизирован только для мобильных устройств</p>
+          <button id="desktop-dismiss" class="primary-btn">Продолжить просмотр</button>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
